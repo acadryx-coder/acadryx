@@ -3,17 +3,171 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Acadryx</title>
+  <title>Acadryx – Launch Your School</title>
   <style>
-    body { font-family: sans-serif; text-align: center; padding: 40px; background: #FDFDFD; color: #333; }
-    h1 { font-size: 32px; }
-    p { font-size: 18px; }
-    button { padding: 16px 32px; font-size: 18px; background: #D4AF37; color: white; border: none; border-radius: 8px; cursor: pointer; }
+    body { font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #FDFDFD; color: #333; text-align: center; }
+    h1 { font-size: 32px; margin-bottom: 10px; }
+    p { font-size: 18px; margin-bottom: 30px; }
+    .step { display: none; }
+    .step.active { display: block; }
+    input, select, button { width: 100%; padding: 12px; margin: 10px 0; font-size: 16px; border-radius: 8px; border: 1px solid #ccc; }
+    button { background: #D4AF37; color: white; border: none; cursor: pointer; }
+    .branches { margin-top: 20px; }
+    .branch-input { margin-bottom: 10px; }
   </style>
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+    const supabaseUrl = 'https://qbczxcgdhvoczihohsvt.supabase.co'
+    const supabaseAnonKey = 'sb_publishable_34AwMbxY2DK6Ghlzpg6-QQ_eim8J2Iu'
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+    let currentStep = 1
+    let formData = { branches: [] }
+
+    function showStep(step) {
+      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'))
+      document.getElementById(`step${step}`).classList.add('active')
+    }
+
+    window.nextStep = function() {
+      if (currentStep === 1) {
+        formData.name = document.getElementById('schoolName').value
+        formData.subdomain = document.getElementById('subdomain').value.toLowerCase()
+        formData.country = document.getElementById('country').value
+        formData.multiBranch = document.getElementById('multiBranch').checked
+      }
+      if (currentStep === 2 && formData.multiBranch) {
+        formData.branches = []
+        document.querySelectorAll('.branch-name').forEach((input, i) => {
+          formData.branches.push({
+            name: input.value,
+            type: document.querySelectorAll('.branch-type')[i].value
+          })
+        })
+      }
+      if (currentStep === 3) {
+        formData.logo = document.getElementById('logo').value
+        formData.color = document.getElementById('color').value || '#2563eb'
+      }
+      if (currentStep === 4) {
+        formData.adminEmail = document.getElementById('adminEmail').value
+        formData.onboardingMethod = document.querySelector('input[name="onboarding"]:checked').value
+      }
+      if (currentStep === 5) {
+        saveSchool()
+        return
+      }
+      currentStep++
+      showStep(currentStep)
+    }
+
+    window.addBranch = function() {
+      const container = document.getElementById('branchesContainer')
+      const div = document.createElement('div')
+      div.className = 'branch-input'
+      div.innerHTML = `
+        <input type="text" class="branch-name" placeholder="Branch Name (e.g. Main Campus)" required>
+        <select class="branch-type">
+          <option value="Nursery">Nursery</option>
+          <option value="Primary">Primary</option>
+          <option value="Junior Secondary">Junior Secondary</option>
+          <option value="Senior Secondary">Senior Secondary</option>
+          <option value="Combined">Combined</option>
+          <option value="Other">Other</option>
+        </select>
+      `
+      container.appendChild(div)
+    }
+
+    async function saveSchool() {
+      const { data, error } = await supabase
+        .from('schools')
+        .insert([{
+          name: formData.name,
+          subdomain: formData.subdomain,
+          logo: formData.logo,
+          primary_color: formData.color,
+          onboarding_method: formData.onboardingMethod
+        }])
+        .select()
+
+      if (error) {
+        alert('Error: ' + error.message)
+        return
+      }
+
+      const schoolId = data[0].id
+
+      if (formData.branches.length > 0) {
+        await supabase
+          .from('branches')
+          .insert(formData.branches.map(b => ({ school_id: schoolId, name: b.name, branch_type: b.type })))
+      }
+
+      document.getElementById('result').innerHTML = `
+        <h2>Success! Your school is live</h2>
+        <p>Dashboard: <strong>https://${formData.subdomain}.acadryx.app</strong></p>
+        <p>Share this with your admin team.</p>
+      `
+      showStep(6)
+    }
+
+    showStep(1)
+  </script>
 </head>
 <body>
   <h1>Welcome to Acadryx</h1>
   <p>The Academic Operating System</p>
-  <button onclick="alert('Wizard coming next')">Launch Your School App</button>
+
+  <div id="step1" class="step active">
+    <h2>Step 1: School Identity</h2>
+    <input type="text" id="schoolName" placeholder="Official School Name" required>
+    <input type="text" id="subdomain" placeholder="Short name for URL" required>
+    <p>Preview: <strong id="preview">yourshortname.acadryx.app</strong></p>
+    <select id="country">
+      <option>Nigeria</option>
+      <option>Ghana</option>
+      <option>Kenya</option>
+      <option>Other</option>
+    </select>
+    <label><input type="checkbox" id="multiBranch"> Multiple branches?</label>
+    <button onclick="nextStep()">Next</button>
+  </div>
+
+  <div id="step2" class="step">
+    <h2>Step 2: Branches (if multiple)</h2>
+    <div id="branchesContainer"></div>
+    <button onclick="addBranch()">Add Branch</button>
+    <button onclick="nextStep()">Next</button>
+  </div>
+
+  <div id="step3" class="step">
+    <h2>Step 3: Branding</h2>
+    <input type="text" id="logo" placeholder="Logo URL (optional)">
+    <input type="color" id="color" value="#2563eb">
+    <button onclick="nextStep()">Next</button>
+  </div>
+
+  <div id="step4" class="step">
+    <h2>Step 4: Admin & Onboarding</h2>
+    <input type="email" id="adminEmail" placeholder="Admin Email" required>
+    <label><input type="radio" name="onboarding" value="codes" checked> Codes (recommended)</label>
+    <label><input type="radio" name="onboarding" value="email"> Email Invite</label>
+    <label><input type="radio" name="onboarding" value="self"> Self-Signup</label>
+    <button onclick="nextStep()">Next</button>
+  </div>
+
+  <div id="step5" class="step">
+    <h2>Step 5: Review & Launch</h2>
+    <p>School: <strong id="reviewName"></strong></p>
+    <p>URL: <strong id="reviewUrl"></strong></p>
+    <button onclick="nextStep()">Provision Your Digital Campus</button>
+  </div>
+
+  <div id="step6" class="step">
+    <div id="result"></div>
+  </div>
 </body>
-</html>
+  </html>
