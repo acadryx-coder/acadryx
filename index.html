@@ -1,290 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Acadryx – Launch Your School</title>
-  <style>
-  <style>
-  body { 
-    font-family: 'Inter', sans-serif; 
-    max-width: 600px; 
-    margin: 0 auto; 
-    padding: 20px; 
-    background: linear-gradient(135deg, #f0f9ff, #e0f2fe); 
-    color: #1e293b; 
-    min-height: 100vh;
-    animation: fadeIn 1s ease-in;
-  }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-  h1 { 
-    font-size: 36px; 
-    background: linear-gradient(to right, #1e40af, #2563eb); 
-    -webkit-background-clip: text; 
-    -webkit-text-fill-color: transparent; 
-    margin-bottom: 10px; 
-  }
-  p { font-size: 18px; color: #475569; margin-bottom: 30px; }
-  .card { 
-    background: rgba(255, 255, 255, 0.8); 
-    backdrop-filter: blur(10px); 
-    border: 1px solid rgba(59, 130, 246, 0.2);
-    padding: 30px; 
-    border-radius: 20px; 
-    box-shadow: 0 8px 32px rgba(37, 99, 235, 0.1); 
-    animation: slideUp 0.6s ease-out;
-  }
-  @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-  input, select { 
-    width: 100%; 
-    padding: 16px; 
-    margin: 12px 0; 
-    font-size: 16px; 
-    border-radius: 12px; 
-    border: 1px solid #bae6fd; 
-    background: rgba(255, 255, 255, 0.9);
-    transition: all 0.3s;
-  }
-  input:focus, select:focus { 
-    outline: none; 
-    border-color: #2563eb; 
-    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2); 
-  }
-  button { 
-    width: 100%; 
-    padding: 18px; 
-    font-size: 18px; 
-    background: linear-gradient(to right, #2563eb, #3b82f6); 
-    color: white; 
-    border: none; 
-    border-radius: 12px; 
-    cursor: pointer; 
-    margin-top: 30px;
-    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
-    transition: all 0.3s;
-  }
-  button:hover { 
-    transform: translateY(-2px); 
-    box-shadow: 0 12px 30px rgba(37, 99, 235, 0.4); 
-  }
-  button.secondary { 
-    background: linear-gradient(to right, #e0e7ff, #c7d2fe); 
-    color: #4f46e5; 
-  }
-  .step { display: none; }
-  .step.active { display: block; animation: fadeIn 0.8s ease-in; }
-  .branch-input { 
-    background: rgba(255, 255, 255, 0.7); 
-    padding: 20px; 
-    border-radius: 16px; 
-    margin-bottom: 20px; 
-    border: 1px dashed #93c5fd;
-  }
-  #result { 
-    margin-top: 40px; 
-    padding: 40px; 
-    background: linear-gradient(to bottom, #dbeafe, #bfdbfe); 
-    border-radius: 20px; 
-    border: 1px solid #93c5fd;
-    animation: celebrate 1s ease-in;
-  }
-  @keyframes celebrate { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>KIS Digital System</title>
+  <meta name="description" content="KIS Digital System — a calm, beautiful academic home for students, schools, and communities." />
+
+  <!-- Core Styles -->
+  <link rel="stylesheet" href="/assets/css/app.css" />
+
+  <!-- Fonts (safe, lightweight, no drama) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
-
-    // REPLACE THESE WITH YOUR SUPABASE KEYS
-    const supabaseUrl = 'YOUR_SUPABASE_URL_HERE'
-    const supabaseAnonKey = 'YOUR_ANON_KEY_HERE'
-
-    const supabase = createClient(supabaseUrl, supabaseAnonKey)
-
-    let currentStep = 1
-    let formData = { branches: [] }
-
-    function showStep(step) {
-      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'))
-      document.getElementById(`step${step}`).classList.add('active')
-      updatePreview()
-    }
-
-    function updatePreview() {
-      const subdomain = document.getElementById('subdomain')?.value.toLowerCase() || 'your-school'
-      document.getElementById('preview').textContent = `${subdomain}.acadryx.app`
-      document.getElementById('reviewName').textContent = document.getElementById('schoolName')?.value || 'Your School'
-      document.getElementById('reviewUrl').textContent = `${subdomain}.acadryx.app`
-    }
-
-    window.nextStep = function() {
-      // Capture data from current step
-      if (currentStep === 1) {
-        formData.name = document.getElementById('schoolName').value.trim()
-        formData.subdomain = document.getElementById('subdomain').value.toLowerCase().trim()
-        formData.country = document.getElementById('country').value
-        formData.multiBranch = document.getElementById('multiBranch').checked
-        if (formData.multiBranch) {
-          document.getElementById('branchesContainer').innerHTML = ''
-          addBranch() // add first branch input
-        }
-      }
-      if (currentStep === 2 && formData.multiBranch) {
-        formData.branches = []
-        document.querySelectorAll('.branch-name').forEach((input, i) => {
-          const type = document.querySelectorAll('.branch-type')[i].value
-          if (input.value.trim()) {
-            formData.branches.push({
-              name: input.value.trim(),
-              type: type
-            })
-          }
-        })
-      }
-      if (currentStep === 3) {
-        formData.logo = document.getElementById('logo').files[0] ? URL.createObjectURL(document.getElementById('logo').files[0]) : ''
-        formData.color = document.getElementById('color').value
-      }
-      if (currentStep === 4) {
-        formData.adminEmail = document.getElementById('adminEmail').value.trim()
-        formData.onboardingMethod = document.querySelector('input[name="onboarding"]:checked').value
-      }
-      if (currentStep === 5) {
-        saveSchool()
-        return
-      }
-
-      currentStep++
-      showStep(currentStep)
-    }
-
-    window.addBranch = function() {
-      const container = document.getElementById('branchesContainer')
-      const div = document.createElement('div')
-      div.className = 'branch-input'
-      div.innerHTML = `
-        <input type="text" class="branch-name" placeholder="Branch Name (e.g. Main Campus)" required>
-        <select class="branch-type">
-          <option value="Nursery">Nursery</option>
-          <option value="Primary">Primary</option>
-          <option value="Junior Secondary">Junior Secondary</option>
-          <option value="Senior Secondary">Senior Secondary</option>
-          <option value="Combined">Combined</option>
-          <option value="Other">Other</option>
-        </select>
-      `
-      container.appendChild(div)
-    }
-
-    async function saveSchool() {
-      const { data, error } = await supabase
-        .from('schools')
-        .insert([{
-          name: formData.name,
-          subdomain: formData.subdomain,
-          logo: formData.logo || null,
-          primary_color: formData.color,
-          onboarding_method: formData.onboardingMethod
-        }])
-        .select()
-
-      if (error) {
-        document.getElementById('result').innerHTML = `<p style="color:#dc2626;">Error: ${error.message}</p>`
-        return
-      }
-
-      const schoolId = data[0].id
-
-      if (formData.branches.length > 0) {
-        const { error: branchError } = await supabase
-          .from('branches')
-          .insert(formData.branches.map(b => ({ 
-            school_id: schoolId, 
-            name: b.name, 
-            branch_type: b.type 
-          })))
-        if (branchError) {
-          document.getElementById('result').innerHTML += `<p style="color:#dc2626;">Branches error: ${branchError.message}</p>`
-        }
-      }
-
-      document.getElementById('result').innerHTML = `
-        <h2>Success! Your school is created</h2>
-        <p><strong>${formData.name}</strong> is now part of the Acadryx family.</p>
-        <p>Your dashboard will be ready soon at:</p>
-        <p style="font-size:22px; color:#2563eb; font-weight:bold;">https://${formData.subdomain}.acadryx.app</p>
-        <p>We’ll notify ${formData.adminEmail} when everything is ready.</p>
-        <p>Thank you for trusting Acadryx.</p>
-      `
-      showStep(6)
-    }
-
-    showStep(1)
-    document.getElementById('subdomain').addEventListener('input', updatePreview)
-  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <h1>Welcome to Acadryx</h1>
-  <p>The Academic Operating System</p>
-  <p style="font-size:16px; color:#64748b;">Automatic results • Automatic magazines • Zero printing costs</p>
 
-  <div id="step1" class="step active">
-    <h2>Step 1: School Identity</h2>
-    <input type="text" id="schoolName" placeholder="Official School Name" required>
-    <input type="text" id="subdomain" placeholder="Short name for URL (e.g. kogbodi)" required>
-    <p>Preview: <strong id="preview">your-school.acadryx.app</strong></p>
-    <select id="country">
-      <option>Nigeria</option>
-      <option>Ghana</option>
-      <option>Kenya</option>
-      <option>United Kingdom</option>
-      <option>United States</option>
-      <option>Other</option>
-    </select>
-    <label style="margin-top:20px;"><input type="checkbox" id="multiBranch"> My school has multiple branches</label>
-    <button onclick="nextStep()">Next →</button>
+  <!-- App Shell -->
+  <div id="app">
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <span class="logo-dot"></span>
+        <span class="brand-name">KIS Digital</span>
+      </div>
+    </header>
+
+    <!-- Main -->
+    <main class="app-main">
+      <section class="hero">
+        <h1 class="hero-title">
+          School, but human.
+        </h1>
+
+        <p class="hero-subtitle">
+          A calm digital home for students, teachers, and alumni.
+          Built to last. Built to belong.
+        </p>
+
+        <div class="hero-actions">
+          <button class="primary-btn" disabled>
+            Student Access
+          </button>
+          <button class="secondary-btn" disabled>
+            Admin Access
+          </button>
+        </div>
+
+        <p class="hero-note">
+          Access modules activate after system setup.
+        </p>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>
+        © <span id="year"></span> KIS Digital System
+      </p>
+    </footer>
+
   </div>
 
-  <div id="step2" class="step">
-    <h2>Step 2: Define Branches</h2>
-    <p>Add each branch separately</p>
-    <div id="branchesContainer"></div>
-    <button onclick="addBranch()" class="secondary">+ Add Another Branch</button>
-    <button onclick="nextStep()">Next →</button>
-  </div>
+  <!-- Core Script -->
+  <script>
+    // tiny sanity script — no dependencies, no nonsense
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
 
-  <div id="step3" class="step">
-    <h2>Step 3: Branding (Optional)</h2>
-    <p>Make your campus feel like home</p>
-    <input type="file" id="logo" accept="image/*">
-    <label>Primary Color</label>
-    <input type="color" id="color" value="#2563eb">
-    <button onclick="nextStep()">Next →</button>
-  </div>
-
-  <div id="step4" class="step">
-    <h2>Step 4: Admin & Onboarding</h2>
-    <input type="email" id="adminEmail" placeholder="School Admin Email" required>
-    <p style="text-align:left; font-size:15px;">How will users join?</p>
-    <div class="radio-group">
-      <label><input type="radio" name="onboarding" value="codes" checked> Codes (recommended for most schools)</label>
-      <label><input type="radio" name="onboarding" value="email"> Email Invites</label>
-      <label><input type="radio" name="onboarding" value="self"> Self-Signup (school email domain)</label>
-    </div>
-    <button onclick="nextStep()">Next →</button>
-  </div>
-
-  <div id="step5" class="step">
-    <h2>Step 5: Review & Launch</h2>
-    <p>School: <strong id="reviewName"></strong></p>
-    <p>Dashboard URL: <strong id="reviewUrl"></strong></p>
-    <p>Everything looks good?</p>
-    <button onclick="nextStep()">Provision Your Digital Campus</button>
-  </div>
-
-  <div id="step6" class="step">
-    <div id="result"></div>
-  </div>
 </body>
   </html>
