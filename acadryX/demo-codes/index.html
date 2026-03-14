@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>school access · phone table</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #f4f7fb;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 1rem;
+            margin: 0;
+        }
+
+        .card {
+            background: #ffffff;
+            width: 100%;
+            max-width: 600px;
+            border-radius: 28px;
+            box-shadow: 0 20px 40px rgba(0, 10, 30, 0.08), 0 6px 12px rgba(0,0,0,0.02);
+            overflow: hidden;
+            padding: 1.5rem 1rem 1.75rem 1rem;
+            border: 1px solid rgba(226, 232, 240, 0.6);
+        }
+
+        h2 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: #0b1b33;
+            padding-left: 0.25rem;
+            margin-top: 0;
+            margin-bottom: 0.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        h2 span {
+            background: #eaeef5;
+            font-size: 0.9rem;
+            font-weight: 400;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            color: #1e3a6f;
+            letter-spacing: 0.3px;
+        }
+
+        .test-note {
+            font-size: 0.95rem;
+            color: #52637a;
+            margin-bottom: 1.6rem;
+            padding-left: 0.25rem;
+            border-left: 3px solid #9bb7d4;
+            padding-left: 0.75rem;
+            background: #f0f5fd;
+            border-radius: 0 8px 8px 0;
+            line-height: 1.4;
+            width: fit-content;
+            padding: 0.4rem 1rem 0.4rem 0.9rem;
+        }
+
+        /* phone-optimised table */
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            overflow-y: visible;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 320px;   /* ensures columns don't get too squashed */
+            font-size: 0.95rem;
+            background: white;
+        }
+
+        th {
+            text-align: left;
+            padding: 1rem 0.8rem 0.8rem 0.8rem;
+            font-weight: 600;
+            color: #1e2f4a;
+            background: #f8fafd;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            border-bottom: 2px solid #cbd5e1;
+        }
+
+        td {
+            padding: 0.9rem 0.8rem;
+            border-bottom: 1px solid #e9edf3;
+            color: #1f2a41;
+            vertical-align: top;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* subtle row hover (still works on tap) */
+        @media (hover: hover) {
+            tr:hover td {
+                background-color: #f6f9ff;
+            }
+        }
+
+        /* highlight certain rows based on content patterns — but keep readable */
+        td:nth-child(1) {  /* school code */
+            font-weight: 500;
+            color: #0c4a6e;
+            white-space: nowrap;
+        }
+
+        td:nth-child(2) {  /* access code */
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.9rem;
+            background: #f8fafc;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        td:nth-child(3) {  /* who you get */
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        /* color tags for brand hint (DEMO001 / RHS001) */
+        .brand-tag {
+            display: inline-block;
+            background: #e6eeff;
+            padding: 0.15rem 0.5rem;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-left: 6px;
+            color: #0047ab;
+        }
+
+        .green-brand {
+            background: #e0f2e0;
+            color: #0b4f2b;
+        }
+
+        .purple-brand {
+            background: #f0e6ff;
+            color: #4b2b8c;
+        }
+
+        /* badge for "top of class" etc */
+        .descriptor {
+            display: inline-block;
+            background: #eaeef3;
+            padding: 0.2rem 0.5rem;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin: 0.2rem 0 0 0;
+            white-space: nowrap;
+        }
+
+        .full-results {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .top-class {
+            background: #fef9c3;
+            color: #854d0e;
+        }
+
+        .admin-badge {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+
+        .teacher-badge {
+            background: #ffe4e6;
+            color: #9d174d;
+        }
+
+        .principal {
+            background: #e6f0ff;
+        }
+
+        /* spacing for very small screens */
+        @media (max-width: 380px) {
+            .card { padding: 1rem 0.75rem; }
+            th { padding: 0.8rem 0.5rem; }
+            td { padding: 0.8rem 0.5rem; }
+            td:nth-child(2) { font-size: 0.8rem; }
+        }
+
+        hr {
+            border: none;
+            border-top: 2px dotted #b9ccdf;
+            margin: 1.2rem 0 0.8rem 0;
+            opacity: 0.4;
+        }
+
+        .footer-note {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem 0.8rem;
+            font-size: 0.8rem;
+            color: #5b6f8b;
+            margin-top: 1.2rem;
+            padding-left: 0.25rem;
+            align-items: baseline;
+        }
+
+        .footer-note i {
+            font-style: normal;
+            background: #eef2f6;
+            padding: 0.2rem 0.45rem;
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>
+            📋 access roster
+            <span>test combos</span>
+        </h2>
+        <div class="test-note">
+            KIS001 · DEMO001 · RHS001 — exactly as provided
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>School</th>
+                        <th>Access</th>
+                        <th>Who you get</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- KIS001 group -->
+                    <tr>
+                        <td>KIS001</td>
+                        <td>STU001</td>
+                        <td>
+                            <strong>Chukwuemeka (Student)</strong>
+                            <span class="descriptor full-results">full results</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>KIS001</td>
+                        <td>STU002</td>
+                        <td>
+                            <strong>Fatima (Student)</strong>
+                            <span class="descriptor top-class">top of class</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>KIS001</td>
+                        <td>ADM001</td>
+                        <td>
+                            <strong>Mrs. Adeyemi (Admin)</strong>
+                            <span class="descriptor admin-badge">admin</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>KIS001</td>
+                        <td>TCH001</td>
+                        <td>
+                            <strong>Mr. Babatunde (Teacher)</strong>
+                            <span class="descriptor teacher-badge">faculty</span>
+                        </td>
+                    </tr>
+
+                    <!-- DEMO001 (green brand, USD) -->
+                    <tr>
+                        <td>DEMO001</td>
+                        <td>ADM001</td>
+                        <td>
+                            <strong>Principal Harris</strong>
+                            <span class="brand-tag green-brand">green · USD</span>
+                            <span class="descriptor principal">admin</span>
+                        </td>
+                    </tr>
+
+                    <!-- RHS001 (purple brand) -->
+                    <tr>
+                        <td>RHS001</td>
+                        <td>ADM001</td>
+                        <td>
+                            <strong>Dr. Abubakar</strong>
+                            <span class="brand-tag purple-brand">purple brand</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- subtle note with all combos typed out (for reference) -->
+        <hr>
+        <div class="footer-note">
+            <i>KIS001·STU001</i> <i>KIS001·STU002</i> <i>KIS001·ADM001</i> <i>KIS001·TCH001</i>
+            <i>DEMO001·ADM001</i> <i>RHS001·ADM001</i>
+        </div>
+        <div style="font-size: 0.75rem; color: #7085a3; margin-top: 0.5rem; padding-left: 0.25rem;">
+            ⚡ swipe table horizontally if needed · all test combos included
+        </div>
+    </div>
+
+    <!-- small check: ensures that even if content overflows, the wrapper scrolls -->
+</body>
+</html>
